@@ -1,0 +1,64 @@
+version: "3.8"
+
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - catalog
+      - cart
+      - order
+      - payment
+
+  catalog:
+    build: ./catalog-service
+    environment:
+      - PORT=5000
+    ports:
+      - "5000:5000"
+
+  cart:
+    build: ./cart-service
+    environment:
+      - REDIS_HOST=redis
+    ports:
+      - "3001:3001"
+    depends_on:
+      - redis
+
+  order:
+    build: ./order-service
+    environment:
+      - DB_HOST=db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=ecommerce
+    ports:
+      - "3002:3002"
+    depends_on:
+      - db
+
+  payment:
+    build: ./payment-service
+    ports:
+      - "5002:5002"
+
+  redis:
+    image: redis:6-alpine
+    ports:
+      - "6379:6379"
+
+  db:
+    image: postgres:13-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ecommerce
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+volumes:
+  db_data:
